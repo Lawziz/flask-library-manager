@@ -1,1 +1,1 @@
-Flask
+Flask (install flask, using pip install flask for windows and pip3 install flask for linux)
