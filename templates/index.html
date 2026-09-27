@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySchool Library Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 40px;
+            background: #f5f7fb;
+            color: #333;
+        }
+
+        h1,
+        h2 {
+            color: #2c3e50;
+        }
+
+        .grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            min-width: 250px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .btn-return {
+            background: #e67e22;
+        }
+
+        .btn-return:hover {
+            background: #d35400;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .available {
+            background: #e8f8f5;
+            color: #2ecc71;
+        }
+
+        .borrowed {
+            background: #fdedec;
+            color: #e74c3c;
+        }
+
+        #alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            padding: 15px 25px;
+            background: #333;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            background: #2ecc71;
+        }
+
+        .toast.danger {
+            background: #e74c3c;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📚 De Lawrenzo Library Dashboard</h1>
+
+    <!-- Container for dynamic JavaScript notifications -->
+    <div id="alert-container"></div>
+
+    <div class="grid">
+        <!-- Add Book Form -->
+        <div class="card">
+            <h2>Add New Book</h2>
+            <form id="bookForm">
+                <input type="text" id="bookTitle" placeholder="Book Title" required>
+                <input type="text" id="bookAuthor" placeholder="Author Name" required>
+                <input type="text" id="bookIsbn" placeholder="ISBN Code" required>
+                <button type="submit">Add Book</button>
+            </form>
+        </div>
+
+        <!-- Add Member Form -->
+        <div class="card">
+            <h2>Register Member</h2>
+            <form id="memberForm">
+                <input type="text" id="memberName" placeholder="Full Name" required>
+                <input type="text" id="memberId" placeholder="Member ID (e.g. M01)" required>
+                <button type="submit">Add Member</button>
+            </form>
+        </div>
+
+        <!-- Operations Form -->
+        <div class="card">
+            <h2>Borrow / Return Operations</h2>
+            <form id="opsForm">
+                <input type="text" id="opsMemberId" placeholder="Member ID" required>
+                <input type="text" id="opsIsbn" placeholder="Book ISBN" required>
+                <button type="button" id="btnBorrow">Borrow Book</button>
+                <button type="button" id="btnReturn" class="btn-return">Return Book</button>
+            </form>
+        </div>
+    </div>
+
+    <h2>Current Book Inventory</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>ISBN</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="booksTableBody"><!-- JS will load books here --></tbody>
+    </table>
+
+    <h2>Registered Members</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Member Name</th>
+                <th>ID</th>
+                <th>Borrowed Books</th>
+            </tr>
+        </thead>
+        <tbody id="membersTableBody"><!-- JS will load members here --></tbody>
+    </table>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Helper to trigger floating toast alerts
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000); // Auto disappear after 4 seconds
+        }
+
+        // Fetch data from Flask API and redraw the tables dynamically
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+
+                // 1. Draw Books Table
+                const booksBody = document.getElementById('booksTableBody');
+                booksBody.innerHTML = data.books.map(book => `
+                    <tr>
+                        <td>${book.title}</td>
+                        <td>${book.author}</td>
+                        <td>${book.isbn}</td>
+                        <td>
+                            <span class="badge ${book.is_available ? 'available' : 'borrowed'}">
+                                ${book.is_available ? 'Available' : 'Borrowed'}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // 2. Draw Members Table
+                const membersBody = document.getElementById('membersTableBody');
+                membersBody.innerHTML = data.members.map(member => `
+                    <tr>
+                        <td>${member.name}</td>
+                        <td><code>${member.member_id}</code></td>
+                        <td>${member.borrowed_books.length > 0 ? member.borrowed_books.join(', ') : '<em>None</em>'}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Error loading dashboard data:", err);
+            }
+        }
+
+        // Handle Form Submissions via JS Fetch API
+        async function sendAction(url, bodyData, formToReset = null) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
+            });
+            const result = await response.json();
+
+            showAlert(result.message, result.success ? 'success' : 'danger');
+
+            if (result.success) {
+                if (formToReset) formToReset.reset();
+                loadDashboardData(); // Refresh UI instantly without breaking layout or reloading
+            }
+        }
+
+        // Event Listeners for Buttons/Forms
+        document.getElementById('bookForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            sendAction('/api/add_book', {
+                title: document.getElementById('bookTitle').value,
+                author: document.getElementById('bookAuthor').value,
+                isbn: document.getElementById('bookIsbn').value
+            }, e.target);
+        });
+
+        document.getElementById('memberForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            sendAction('/api/add_member', {
+                name: document.getElementById('memberName').value,
+                member_id: document.getElementById('memberId').value
+            }, e.target);
+        });
+
+        document.getElementById('btnBorrow').addEventListener('click', () => {
+            sendAction('/api/borrow', {
+                member_id: document.getElementById('opsMemberId').value,
+                isbn: document.getElementById('opsIsbn').value
+            }, document.getElementById('opsForm'));
+        });
+
+        document.getElementById('btnReturn').addEventListener('click', () => {
+            sendAction('/api/return', {
+                member_id: document.getElementById('opsMemberId').value,
+                isbn: document.getElementById('opsIsbn').value
+            }, document.getElementById('opsForm'));
+        });
+
+        // Initial paint on open
+        window.onload = loadDashboardData;
+    </script>
+</body>
+
+</html>
