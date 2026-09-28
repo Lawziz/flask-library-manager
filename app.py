@@ -57,7 +57,7 @@ class Member:
             if success:
                 self.borrowed_books.remove(book)
             return success, message
-        return False, f"Rejected: {self.name} does not hold '{book.title}' checked out."
+        return False, f"Rejected: {self.name} does not have '{book.title}' checked out."
 
 
 class Library:
