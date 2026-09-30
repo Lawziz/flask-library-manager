@@ -1,12 +1,14 @@
-from flask import render_template, request, jsonify, current_app
+from flask import Blueprint, render_template, request, jsonify
 from app.models import db, Book, Member
 
-# We use the current_app context proxy to bind mappings cleanly
-@current_app.route("/")
+# Create a Blueprint named 'main'
+main = Blueprint('main', __name__)
+
+@main.route("/")
 def index():
     return render_template("index.html")
 
-@current_app.route("/api/data", methods=["GET"])
+@main.route("/api/data", methods=["GET"])
 def get_data():
     books = Book.query.all()
     members = Member.query.all()
@@ -15,7 +17,7 @@ def get_data():
         "members": [m.to_dict() for m in members]
     })
 
-@current_app.route("/api/add_book", methods=["POST"])
+@main.route("/api/add_book", methods=["POST"])
 def add_book_api():
     data = request.get_json()
     isbn = data.get("isbn")
@@ -27,7 +29,7 @@ def add_book_api():
     db.session.commit()
     return jsonify({"success": True, "message": f"Book '{new_book.title}' added successfully."})
 
-@current_app.route("/api/add_member", methods=["POST"])
+@main.route("/api/add_member", methods=["POST"])
 def add_member_api():
     data = request.get_json()
     member_id = data.get("member_id")
@@ -39,7 +41,7 @@ def add_member_api():
     db.session.commit()
     return jsonify({"success": True, "message": f"Member '{new_member.name}' registered successfully."})
 
-@current_app.route("/api/delete_book", methods=["POST"])
+@main.route("/api/delete_book", methods=["POST"])
 def delete_book_api():
     data = request.get_json()
     book = Book.query.get(data.get("isbn"))
@@ -52,7 +54,7 @@ def delete_book_api():
     db.session.commit()
     return jsonify({"success": True, "message": f"Book '{book.title}' deleted successfully."})
 
-@current_app.route("/api/delete_member", methods=["POST"])
+@main.route("/api/delete_member", methods=["POST"])
 def delete_member_api():
     data = request.get_json()
     member = Member.query.get(data.get("member_id"))
@@ -65,7 +67,7 @@ def delete_member_api():
     db.session.commit()
     return jsonify({"success": True, "message": f"Member '{member.name}' deleted successfully."})
 
-@current_app.route("/api/borrow", methods=["POST"])
+@main.route("/api/borrow", methods=["POST"])
 def borrow_api():
     data = request.get_json()
     member = Member.query.get(data.get("member_id"))
@@ -84,7 +86,7 @@ def borrow_api():
     db.session.commit()
     return jsonify({"success": True, "message": f"Successfully borrowed '{book.title}'."})
 
-@current_app.route("/api/return", methods=["POST"])
+@main.route("/api/return", methods=["POST"])
 def return_api():
     data = request.get_json()
     member = Member.query.get(data.get("member_id"))

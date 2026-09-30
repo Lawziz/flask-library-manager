@@ -6,21 +6,28 @@ A modular, lightweight library management application built with **Flask**, **Fl
 
 The application implements the **Flask Application Factory** design pattern to separate business logic, database configuration, and application routing cleanly:
 
-your_project/
+project_folder/
 │
-├── run.py                        
-├── library.db
-├── requirements.txt
-├── README.md
-└── app/
-    ├── __init__.py
-    ├── models.py
-    ├── routes.py
-    ├── static/            
-    │   ├── style.css
-    │   └── scripts.js
-    └── templates/
-        └── index.html
+├── run.py                 # Main entry point to run the Flask app
+├── library.db             # Local SQLite database file (Auto-generated; ignored by Git)
+├── .gitignore             # Tells Git to ignore tracking local DBs and environments
+├── requirements.txt       # List of third-party library dependencies
+├── README.md              # Technical project documentation overview
+│
+├── app/                   # core application package
+│   ├── __init__.py        # App factory config (instantiates server instance)
+│   ├── models.py          # Database structure schemas & relation hooks
+│   ├── routes.py          # Server endpoint routes (processes incoming json requests)
+│   │
+│   ├── static/            # Static asset folder
+│   │   ├── style.css      # Component stylesheet layouts
+│   │   └── scripts.js     # AJAX API request scripts (handles user actions)
+│   │
+│   └── templates/         # HTML structure layer
+│       └── index.html     # Client UI workspace view frame
+│
+└── tests/                 # Automated test engine
+    └── test_app.py        # Isolated test cases (uses in-memory database)
 
 ---
 
