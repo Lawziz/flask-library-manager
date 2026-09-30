@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySchool Library Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+</head>
+
+<body>
+    <h1>📚 DeLawrenzo Library Dashboard</h1>
+
+    <!-- Container for dynamic JavaScript notifications -->
+    <div id="alert-container"></div>
+
+    <div class="grid">
+        <!-- Add Book Form -->
+        <div class="card">
+            <h2>Add New Book</h2>
+            <form id="bookForm">
+                <input type="text" id="bookTitle" placeholder="Book Title" required>
+                <input type="text" id="bookAuthor" placeholder="Author Name" required>
+                <input type="text" id="bookIsbn" placeholder="ISBN Code" required>
+                <button type="submit">Add Book</button>
+            </form>
+        </div>
+
+        <!-- Add Member Form -->
+        <div class="card">
+            <h2>Register Member</h2>
+            <form id="memberForm">
+                <input type="text" id="memberName" placeholder="Full Name" required>
+                <input type="text" id="memberId" placeholder="Member ID (e.g. M01)" required>
+                <button type="submit">Add Member</button>
+            </form>
+        </div>
+
+        <!-- Operations Form -->
+        <div class="card">
+            <h2>Borrow / Return Operations</h2>
+            <form id="opsForm">
+                <input type="text" id="opsMemberId" placeholder="Member ID" required>
+                <input type="text" id="opsIsbn" placeholder="Book ISBN" required>
+                <button type="button" id="btnBorrow">Borrow Book</button>
+                <button type="button" id="btnReturn" class="btn-return">Return Book</button>
+            </form>
+        </div>
+    </div>
+
+    <h2>Current Book Inventory</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>ISBN</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="booksTableBody"><!-- JS will load books here --></tbody>
+    </table>
+
+    <h2>Registered Members</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Member Name</th>
+                <th>ID</th>
+                <th>Borrowed Books</th>
+            </tr>
+        </thead>
+        <tbody id="membersTableBody"><!-- JS will load members here --></tbody>
+    </table>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+
+</html>
